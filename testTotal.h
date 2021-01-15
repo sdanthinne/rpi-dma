@@ -14,7 +14,8 @@ uint32_t ti,
 void enable_dma(void);
 void start_dma(DMA_CB *cbp);
 void stop_dma(void);
-
+void *videocore_allocator(void);
+void *no_cache_memory(void);
 
 
 #endif
