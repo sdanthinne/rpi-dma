@@ -1,6 +1,6 @@
 // DMA tests for the Raspberry Pi, see https://iosoft.blog for details
 //
-// Copyright (c) 2020 Jeremy P Bentham
+// Copyright (c) 2020 Jeremy P Bentham 
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@
 //
 // v0.10 JPB 25/5/20
 //
+//
+// with additions by Erin Clark and Sebastien Danthinne
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -232,6 +234,37 @@ int main(int argc, char *argv[])
     dma_test_led_flash(LED_PIN);
     dma_test_pwm_trigger(LED_PIN);
     terminate(0);
+}
+/**
+ * This function should, using the dma engine, copy over the size size of data 
+ *  from the origin to the destination.
+ *
+ *  size_t is in bytes
+ */
+void * dmacp(void * origin, void * destination, size_t size)
+{
+    DMA_CB *cbp = (DMA_CB*)videocore_allocator();
+    //assuming DMA was already enabled in the initDMA
+    memset(cbp,0,sizeof(DMA_CB));
+    cbp->ti = DMA_CB_SRC_INC | DMA_CB_DEST_INC;
+    cbp->srce_ad = BUS_DMA_MEM(origin);
+    cbp->dest_ad = BUS_DMA_MEM(destination);
+    cbp->tfr_len = size+1;
+    start_dma(cbp);
+    usleep(10);
+}
+
+void initdma()
+{
+    signal(SIGINT, terminate);
+
+    // Map GPIO, DMA and PWM registers into virtual mem (user space)
+    virt_gpio_regs = map_segment((void *)GPIO_BASE, PAGE_SIZE);
+    virt_dma_regs = map_segment((void *)DMA_BASE, PAGE_SIZE);
+    virt_pwm_regs = map_segment((void *)PWM_BASE, PAGE_SIZE);
+    virt_clk_regs = map_segment((void *)CLK_BASE, PAGE_SIZE);
+    enable_dma();
+
 }
 
 // DMA memory-to-memory test
