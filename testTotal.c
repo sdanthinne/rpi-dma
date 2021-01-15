@@ -217,10 +217,22 @@ int main(int argc, char *argv[])
     virt_clk_regs = map_segment((void *)CLK_BASE, PAGE_SIZE);
     enable_dma();
 
+    // Call videocore_allocator here?
+
     // Set LED pin as output, and set high
     gpio_mode(LED_PIN, GPIO_OUT);
     gpio_out(LED_PIN, 1);
 
+    // Run DMA tests
+    dma_test_mem_transfer();
+    dma_test_led_flash(LED_PIN);
+    dma_test_pwm_trigger(LED_PIN);
+    terminate(0);
+}
+
+// Allocate specific memory using the video core
+void *videocore_allocator(void)
+{
     // Use mailbox to get uncached memory for DMA decriptors and buffers
     mbox_fd = open_mbox();
     if ((dma_mem_h = alloc_vc_mem(mbox_fd, DMA_MEM_SIZE, DMA_MEM_FLAGS)) <= 0 ||
@@ -228,12 +240,19 @@ int main(int argc, char *argv[])
         (virt_dma_mem = map_segment(BUS_PHYS_ADDR(bus_dma_mem), DMA_MEM_SIZE)) == 0)
             FAIL("Error: can't allocate uncached memory\n");
     printf("VC mem handle %u, phys %p, virt %p\n", dma_mem_h, bus_dma_mem, virt_dma_mem);
+    return virt_dma_mem;
+}
 
-    // Run DMA tests
-    dma_test_mem_transfer();
-    dma_test_led_flash(LED_PIN);
-    dma_test_pwm_trigger(LED_PIN);
-    terminate(0);
+// Memory guaranteed not to be cached
+void * no_cache_memory()
+{
+    virt_dma_regs = map_segment((void*)DMA_BASE,PAGE_SIZE);
+    mbox_fd= open_mbox();
+    if ((dma_mem_h = alloc_vc_mem(mbox_fd, DMA_MEM_SIZE, DMA_MEM_FLAGS)) <= 0 ||
+        (bus_dma_mem = lock_vc_mem(mbox_fd, dma_mem_h)) == 0 ||
+        (virt_dma_mem = map_segment(BUS_PHYS_ADDR(bus_dma_mem), DMA_MEM_SIZE)) == 0)
+            FAIL("Error: can't allocate uncached memory\n");
+    return virt_dma_mem;
 }
 /**
  * This function should, using the dma engine, copy over the size size of data 
