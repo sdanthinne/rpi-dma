@@ -1,13 +1,17 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include "rpi_dma_utils.h"
+#include "testTotal.h"
 
 void *virt_dma_regs, *bus_dma_mem,*virt_dma_mem;
 int mbox_fd, dma_mem_h;
 void initdma()
 {
     signal(SIGINT,terminate);
+}
+
+void * no_cache_memory()
+{
     virt_dma_regs = map_segment((void*)DMA_BASE,PAGE_SIZE);
     mbox_fd= open_mbox();
     if ((dma_mem_h = alloc_vc_mem(mbox_fd, DMA_MEM_SIZE, DMA_MEM_FLAGS)) <= 0 ||
@@ -15,11 +19,7 @@ void initdma()
         (virt_dma_mem = map_segment(BUS_PHYS_ADDR(bus_dma_mem), DMA_MEM_SIZE)) == 0)
             FAIL("Error: can't allocate uncached memory\n");
     printf("VC mem handle %u, phys %p, virt %p\n", dma_mem_h, bus_dma_mem, virt_dma_mem);
-}
-
-void * no_cache_memory()
-{
-
+    return virt_dma_mem;
 }
 
 /**
