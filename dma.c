@@ -36,7 +36,7 @@
 #define BUS_REG_BASE    0x7E000000
 
 // If non-zero, print debug information
-#define DEBUG          1 
+#define DEBUG          0 
 
 // Output pin to use for LED
 //#define LED_PIN         47    // Pi Zero onboard LED
@@ -148,6 +148,18 @@ void enable_dma(void);
 void start_dma(DMA_CB *cbp);
 void stop_dma(void);
 void disp_dma(void);
+/*----------------------------------------------------------------
+ * This function is only used to make sure that the test cases
+ * we are using are in uncached memory. This is necessary because
+ * the DMA engine NEEDS bus addresses to "see" the memory, so data
+ * must already be somewhere that we know the bus addresses. This
+ * function would be unnecessary if the user of the function
+ * could guarantee that they were giving an address from uncached
+ * memory.
+ * ------------------------------------------------------------*/
+void copyToUncached( char* srce, char*data, int size ){
+    memcpy(srce, data, size);
+}
 
 // Main program
 int main(int argc, char *argv[])
@@ -156,7 +168,7 @@ int main(int argc, char *argv[])
     char *dest;
     int dest_offset = 500;
     char *str = "hello there is no problem";
-    int size = 28;
+    int size = 26;
     // Ensure cleanup if user hits ctrl-C
     signal(SIGINT, terminate);
 
@@ -174,20 +186,20 @@ int main(int argc, char *argv[])
 
     DMA_CB *cbp = virt_dma_mem;
     srce = (char *)(cbp+1);
-    *srce = *str;
     dest = srce + 0x100;
-    printf("Source: %s\n", srce);
-    printf("Dest: %p\n", dest);
-    
-    //strcpy(srce, "memory transfer OK");
+    copyToUncached(srce, str, size); // To get it into uncached memory
     memset(cbp, 0, sizeof(DMA_CB));
     cbp->ti = DMA_CB_SRC_INC | DMA_CB_DEST_INC;
     cbp->srce_ad = BUS_DMA_MEM(srce);
     cbp->dest_ad = BUS_DMA_MEM(dest);
     cbp->tfr_len = size + 1;
-    printf("Length: %d\n", size); 
     // Run DMA tests
-    dma_test_mem_transfer(srce, dest, cbp);
+    dma_test_mem_transfer(str, dest, cbp);
+    printf("Source Pointer: %p\n", srce);
+    printf("Destination Pointer: %p\n", dest);
+    printf("Source Contents: %s\n", srce);
+    printf("Destination Contents: %s\n", dest);
+
     terminate(0);
 }
 
@@ -200,7 +212,6 @@ int dma_test_mem_transfer(char *srce, char *dest, DMA_CB* cbp)
     disp_dma();
 #endif
     printf("DMA test: %s\n", dest[0] ? dest : "failed");
-    printf("Other Dest: %p\n", dest);
     
     return(dest[0] != 0);
 }
