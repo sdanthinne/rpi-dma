@@ -205,7 +205,8 @@ void start_pwm(void);
 void stop_pwm(void);
 
 // Main program
-/*int main(int argc, char *argv[])
+#ifdef TEST
+int main(int argc, char *argv[])
 {
     // Ensure cleanup if user hits ctrl-C
     signal(SIGINT, terminate);
@@ -218,17 +219,25 @@ void stop_pwm(void);
     enable_dma();
 
     // Call videocore_allocator here?
-
+    mbox_fd = open_mbox();
+    if ((dma_mem_h = alloc_vc_mem(mbox_fd, DMA_MEM_SIZE, DMA_MEM_FLAGS)) <= 0 ||
+        (bus_dma_mem = lock_vc_mem(mbox_fd, dma_mem_h)) == 0 ||
+        (virt_dma_mem = map_segment(BUS_PHYS_ADDR(bus_dma_mem), DMA_MEM_SIZE)) == 0)
+            FAIL("Error: can't allocate uncached memory\n");
+    printf("VC mem handle %u, phys %p, virt %p\n", dma_mem_h, bus_dma_mem, virt_dma_mem);
+    
     // Set LED pin as output, and set high
     gpio_mode(LED_PIN, GPIO_OUT);
     gpio_out(LED_PIN, 1);
 
     // Run DMA tests
+    printf("starting transfer\n");
     dma_test_mem_transfer();
-    dma_test_led_flash(LED_PIN);
-    dma_test_pwm_trigger(LED_PIN);
+    //dma_test_led_flash(LED_PIN);
+    //dma_test_pwm_trigger(LED_PIN);
     terminate(0);
-}*/
+}
+#endif
 
 // Allocate specific memory using the video core
 void *videocore_allocator(void)
@@ -260,9 +269,9 @@ void * no_cache_memory()
  *
  *  size_t is in bytes
  */
-void * dmacp(void * origin, void * destination, size_t size)
+void * dmacp(void * origin, void * destination, size_t size,void * freeMem)
 {
-    DMA_CB *cbp = (DMA_CB*)videocore_allocator();
+    DMA_CB *cbp = freeMem;
     //assuming DMA was already enabled in the initDMA
     memset(cbp,0,sizeof(DMA_CB));
     cbp->ti = DMA_CB_SRC_INC | DMA_CB_DEST_INC;
@@ -271,6 +280,7 @@ void * dmacp(void * origin, void * destination, size_t size)
     cbp->tfr_len = size+1;
     start_dma(cbp);
     usleep(10);
+    disp_dma();
 }
 
 void init_dma()
@@ -299,11 +309,10 @@ int dma_test_mem_transfer(void)
     cbp->srce_ad = BUS_DMA_MEM(srce);
     cbp->dest_ad = BUS_DMA_MEM(dest);
     cbp->tfr_len = strlen(srce) + 1;
+    printf("starting transfer\n");
     start_dma(cbp);
     usleep(10);
-#if DEBUG
     disp_dma();
-#endif
     printf("DMA test: %s\n", dest[0] ? dest : "failed");
     return(dest[0] != 0);
 }

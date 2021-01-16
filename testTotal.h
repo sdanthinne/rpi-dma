@@ -16,7 +16,7 @@ void init_dma(void);
 void enable_dma(void);
 void start_dma(DMA_CB *cbp);
 void stop_dma(void);
-void * dmacp(void * origin, void * destination, size_t size);
+void * dmacp(void * origin, void * destination, size_t size,void * freeMem);
 
 void *videocore_allocator(void);
 void *no_cache_memory(void);

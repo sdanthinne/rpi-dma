@@ -3,8 +3,10 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#ifndef TEST
 int main()
 {
+
 
     char * string = "hello there is no problem";
     void * newMem;
@@ -14,9 +16,10 @@ int main()
     usleep(1000);//hopefully this will be able to do some of the flush?
     newMem = videocore_allocator();
     strcpy(newMem,string);
-    newplace = newMem+100;//move the pointer 100 
+    newplace = newMem+10;//move the pointer 100 
     printf("engine init\n");
-    dmacp((void*)string,(void*)&newplace,strlen(string));
+
+    dmacp((void*)newMem,(void*)newplace,strlen(string)+1,newplace+100);//added one for nul
     usleep(1000);
     printf("moved value: '%s'\n",newplace);
     printf("original value: '%s'\n",newMem);
@@ -29,3 +32,4 @@ int main()
     return 0;
 
 }
+#endif
