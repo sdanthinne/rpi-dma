@@ -1,10 +1,10 @@
-#define PHYS_REG_BASE   PI_01_REG_BASE
+#define PHYS_REG_BASE   PI_23_REG_BASE
 #define PI_01_REG_BASE  0x20000000  // Pi Zero or 1
 #define PI_23_REG_BASE  0x3F000000  // Pi 2 or 3
 #define PI_4_REG_BASE   0xFE000000  // Pi 4
-
-//#define CLOCK_HZ      250000000   // Pi 2 - 4
-#define CLOCK_HZ        400000000   // Pi Zero
+#include <stdint.h>
+#define CLOCK_HZ      250000000   // Pi 2 - 4
+//#define CLOCK_HZ        400000000   // Pi Zero
 
 // Location of peripheral registers in bus memory
 #define BUS_REG_BASE    0x7E000000
@@ -171,6 +171,7 @@ uint32_t unlock_vc_mem(int fd, int h);
 uint32_t free_vc_mem(int fd, int h);
 uint32_t set_vc_clock(int fd, int id, uint32_t freq);
 void disp_vc_msg(VC_MSG *msgp);
+void init_dma(void);
 void enable_dma(int chan);
 void start_dma(MEM_MAP *mp, int chan, DMA_CB *cbp, uint32_t csval);
 uint32_t dma_transfer_len(int chan);

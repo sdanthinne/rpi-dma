@@ -38,6 +38,17 @@ char *gpio_mode_strs[] = {GPIO_MODE_STRS};
 // Virtual memory pointers to acceess GPIO, DMA and PWM from user space
 MEM_MAP pwm_regs, gpio_regs, dma_regs, clk_regs;
 
+void fail(char * msg)
+{
+    printf(msg);
+}
+
+//function to initialize the DMA channels
+void init_dma()
+{
+    map_periph(&dma_regs,(void*)DMA_BASE,1000);
+}
+
 // Use mmap to obtain virtual address, given physical
 void *map_periph(MEM_MAP *mp, void *phys, int size)
 {
