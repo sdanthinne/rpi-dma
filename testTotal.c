@@ -205,7 +205,7 @@ void start_pwm(void);
 void stop_pwm(void);
 
 // Main program
-int main(int argc, char *argv[])
+/*int main(int argc, char *argv[])
 {
     // Ensure cleanup if user hits ctrl-C
     signal(SIGINT, terminate);
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
     dma_test_led_flash(LED_PIN);
     dma_test_pwm_trigger(LED_PIN);
     terminate(0);
-}
+}*/
 
 // Allocate specific memory using the video core
 void *videocore_allocator(void)
@@ -273,7 +273,7 @@ void * dmacp(void * origin, void * destination, size_t size)
     usleep(10);
 }
 
-void initdma()
+void init_dma()
 {
     signal(SIGINT, terminate);
 

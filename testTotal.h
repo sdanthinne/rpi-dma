@@ -12,7 +12,7 @@ uint32_t ti,
          debug,
          unused;
 } DMA_CB __attribute__ ((aligned(32)));
-
+void init_dma(void);
 void enable_dma(void);
 void start_dma(DMA_CB *cbp);
 void stop_dma(void);
