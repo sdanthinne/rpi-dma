@@ -16,6 +16,8 @@
 //
 // v0.10 JPB 25/5/20
 //
+// edited by Erin Clark and Sebastien Danthinne
+//
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -29,8 +31,8 @@
 
 // Location of peripheral registers in physical memory
 //#define PHYS_REG_BASE  0x20000000  // Pi Zero or 1
-//#define PHYS_REG_BASE    0x3F000000  // Pi 2 or 3
-#define PHYS_REG_BASE  0xFE000000  // Pi 4
+#define PHYS_REG_BASE    0x3F000000  // Pi 2 or 3
+//#define PHYS_REG_BASE  0xFE000000  // Pi 4
 
 // Location of peripheral registers in bus memory
 #define BUS_REG_BASE    0x7E000000
